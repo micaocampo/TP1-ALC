@@ -28,7 +28,7 @@ def calcula_matriz_C(A):
     # Función para calcular la matriz de trancisiones C
     # A: Matriz de adyacencia
     # Retorna la matriz C
-    K = np.eye(A.shape[0], k=0) # matriz identidad
+    K = np.zeros(A.shape[0]) # matriz llena de ceros con el mismo tamaño de A (cuadrada)
     for i in range (A.shape[0]): #recorrre filas
         cantidad_apunta = 0 #marcará la cantidad de museos a los que apunta el museo i
         for j in range (A.shape[0]): #recorre columnas
@@ -39,6 +39,15 @@ def calcula_matriz_C(A):
     C = Kinv @ A # Calcula C multiplicando Kinv y A 
     # si queremos C que sea las probabilidades, no deberia ser A^t @ Kinv?
     return C
+
+def traspuesta(A):
+    n = A.shape[0] # numero de filas
+    m = A.shape[1] # numero de columnas
+    AT = np.zeros((m, n)) # matriz mxn llena de ceros
+    for j in range(m):
+        for i in range(n): 
+            AT[j,i] = A[i,j]
+    return AT
 
 def invertirK(K):
     # calculamos la inversa de una matriz que tiene numeros en la diagonal y ceros en todo lo demas, ya que sabemos que K tiene este formato siempre
