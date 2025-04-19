@@ -28,15 +28,17 @@ def calcula_matriz_C(A):
     # Función para calcular la matriz de trancisiones C
     # A: Matriz de adyacencia
     # Retorna la matriz C
-    K = np.zeros(A.shape[0]) # matriz llena de ceros con el mismo tamaño de A (cuadrada)
-    for i in range (A.shape[0]): #recorrre filas
+    tamaño_A = A.shape[0]
+    K = np.zeros((tamaño_A,tamaño_A)) # matriz llena de ceros con el mismo tamaño de A (cuadrada)
+    for i in range (tamaño_A): #recorrre filas
         cantidad_apunta = 0 #marcará la cantidad de museos a los que apunta el museo i
-        for j in range (A.shape[0]): #recorre columnas
+        for j in range (tamaño_A): #recorre columnas
             cantidad_apunta = cantidad_apunta + A[i,j] #suma todos los elementos de la fila i (son 0, si no apunta y 1, si apunta)
         K[i,i] = cantidad_apunta
 
     Kinv = invertirK(K) # Calcula inversa de la matriz K, que tiene en su diagonal la suma por filas de A
-    C = Kinv @ A # Calcula C multiplicando Kinv y A 
+    A_traspuesta = traspuesta(A)
+    C = A_traspuesta @ Kinv # Calcula C multiplicando Kinv y A 
     # si queremos C que sea las probabilidades, no deberia ser A^t @ Kinv?
     return C
 
