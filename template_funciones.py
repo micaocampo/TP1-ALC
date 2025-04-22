@@ -39,7 +39,6 @@ def calcula_matriz_C(A):
     Kinv = invertirK(K) # Calcula inversa de la matriz K, que tiene en su diagonal la suma por filas de A
     A_traspuesta = traspuesta(A)
     C = A_traspuesta @ Kinv # Calcula C multiplicando Kinv y A 
-    # si queremos C que sea las probabilidades, no deberia ser A^t @ Kinv?
     return C
 
 def traspuesta(A):
