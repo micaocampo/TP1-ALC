@@ -1,3 +1,13 @@
+import geopandas as gpd
+import pandas as pd
+import numpy as np
+import scipy
+
+museos = gpd.read_file('https://raw.githubusercontent.com/MuseosAbiertos/Leaflet-museums-OpenStreetMap/refs/heads/principal/data/export.geojson')
+barrios = gpd.read_file('https://cdn.buenosaires.gob.ar/datosabiertos/datasets/ministerio-de-educacion/barrios/barrios.geojson')
+
+D = museos.to_crs("EPSG:22184").geometry.apply(lambda g: museos.to_crs("EPSG:22184").distance(g)).round().to_numpy()
+
 def construye_adyacencia(D,m): 
     # Función que construye la matriz de adyacencia del grafo de museos
     # D matriz de distancias, m cantidad de links por nodo
@@ -9,6 +19,7 @@ def construye_adyacencia(D,m):
     A = np.asarray(l).astype(int) # Convertimos a entero
     np.fill_diagonal(A,0) # Borramos diagonal para eliminar autolinks
     return(A)
+
 
 def calculaLU(matriz):
     # matriz es una matriz de NxN
@@ -67,7 +78,7 @@ def calcula_pagerank(A,alfa):
     # Retorna: Un vector p con los coeficientes de page rank de cada museo
     C = calcula_matriz_C(A)
     N = A.shape[0] # Obtenemos el número de museos N a partir de la estructura de la matriz A
-    I = np.eye(n, k=0)
+    I = np.eye(N, k=0)
     M = (I - (1 - alfa)* C)
     L, U = calculaLU(M) # Calculamos descomposición LU a partir de C y d
     b = (alfa/N) * np.ones(N) # Vector de 1s, multiplicado por el coeficiente correspondiente usando d y N.
@@ -75,7 +86,10 @@ def calcula_pagerank(A,alfa):
     p = scipy.linalg.solve_triangular(U,Up) # Segunda inversión usando U
     return p
 
-def calcula_matriz_C_continua(D): 
+
+
+
+#%% def calcula_matriz_C_continua(D): 
     # Función para calcular la matriz de trancisiones C
     # A: Matriz de adyacencia
     # Retorna la matriz C en versión continua
@@ -96,3 +110,4 @@ def calcula_B(C,cantidad_de_visitas):
     for i in range(cantidad_de_visitas-1):
         # Sumamos las matrices de transición para cada cantidad de pasos
     return B
+#%%
