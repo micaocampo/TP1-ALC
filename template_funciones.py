@@ -67,7 +67,8 @@ def calcula_pagerank(A,alfa):
     # Retorna: Un vector p con los coeficientes de page rank de cada museo
     C = calcula_matriz_C(A)
     N = A.shape[0] # Obtenemos el número de museos N a partir de la estructura de la matriz A
-    M = (1 - alfa)* C 
+    I = np.eye(n, k=0)
+    M = (I - (1 - alfa)* C)
     L, U = calculaLU(M) # Calculamos descomposición LU a partir de C y d
     b = (alfa/N) * np.ones(N) # Vector de 1s, multiplicado por el coeficiente correspondiente usando d y N.
     Up = scipy.linalg.solve_triangular(L,b,lower=True) # Primera inversión usando L
