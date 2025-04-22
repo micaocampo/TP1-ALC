@@ -1,3 +1,13 @@
+import geopandas as gpd
+import pandas as pd
+import numpy as np
+import scipy
+
+museos = gpd.read_file('https://raw.githubusercontent.com/MuseosAbiertos/Leaflet-museums-OpenStreetMap/refs/heads/principal/data/export.geojson')
+barrios = gpd.read_file('https://cdn.buenosaires.gob.ar/datosabiertos/datasets/ministerio-de-educacion/barrios/barrios.geojson')
+
+D = museos.to_crs("EPSG:22184").geometry.apply(lambda g: museos.to_crs("EPSG:22184").distance(g)).round().to_numpy()
+
 def construye_adyacencia(D,m): 
     # Función que construye la matriz de adyacencia del grafo de museos
     # D matriz de distancias, m cantidad de links por nodo
@@ -9,6 +19,7 @@ def construye_adyacencia(D,m):
     A = np.asarray(l).astype(int) # Convertimos a entero
     np.fill_diagonal(A,0) # Borramos diagonal para eliminar autolinks
     return(A)
+
 
 def calculaLU(matriz):
     # matriz es una matriz de NxN
@@ -28,16 +39,17 @@ def calcula_matriz_C(A):
     # Función para calcular la matriz de trancisiones C
     # A: Matriz de adyacencia
     # Retorna la matriz C
-    K = np.zeros(A.shape[0]) # matriz llena de ceros con el mismo tamaño de A (cuadrada)
-    for i in range (A.shape[0]): #recorrre filas
+    tamaño_A = A.shape[0]
+    K = np.zeros((tamaño_A,tamaño_A)) # matriz llena de ceros con el mismo tamaño de A (cuadrada)
+    for i in range (tamaño_A): #recorrre filas
         cantidad_apunta = 0 #marcará la cantidad de museos a los que apunta el museo i
-        for j in range (A.shape[0]): #recorre columnas
+        for j in range (tamaño_A): #recorre columnas
             cantidad_apunta = cantidad_apunta + A[i,j] #suma todos los elementos de la fila i (son 0, si no apunta y 1, si apunta)
         K[i,i] = cantidad_apunta
 
     Kinv = invertirK(K) # Calcula inversa de la matriz K, que tiene en su diagonal la suma por filas de A
-    C = Kinv @ A # Calcula C multiplicando Kinv y A 
-    # si queremos C que sea las probabilidades, no deberia ser A^t @ Kinv?
+    A_traspuesta = traspuesta(A)
+    C = A_traspuesta @ Kinv # Calcula C multiplicando Kinv y A 
     return C
 
 def traspuesta(A):
@@ -66,14 +78,18 @@ def calcula_pagerank(A,alfa):
     # Retorna: Un vector p con los coeficientes de page rank de cada museo
     C = calcula_matriz_C(A)
     N = A.shape[0] # Obtenemos el número de museos N a partir de la estructura de la matriz A
-    M = (1 - alfa)* C 
+    I = np.eye(N, k=0)
+    M = (I - (1 - alfa)* C)
     L, U = calculaLU(M) # Calculamos descomposición LU a partir de C y d
     b = (alfa/N) * np.ones(N) # Vector de 1s, multiplicado por el coeficiente correspondiente usando d y N.
     Up = scipy.linalg.solve_triangular(L,b,lower=True) # Primera inversión usando L
     p = scipy.linalg.solve_triangular(U,Up) # Segunda inversión usando U
     return p
 
-def calcula_matriz_C_continua(D): 
+
+
+
+#%% def calcula_matriz_C_continua(D): 
     # Función para calcular la matriz de trancisiones C
     # A: Matriz de adyacencia
     # Retorna la matriz C en versión continua
@@ -94,3 +110,4 @@ def calcula_B(C,cantidad_de_visitas):
     for i in range(cantidad_de_visitas-1):
         # Sumamos las matrices de transición para cada cantidad de pasos
     return B
+#%%
