@@ -101,6 +101,7 @@ def calcula_matriz_C_continua(D):
             cantidad_apunta = cantidad_apunta + A[i,j] #suma todos los elementos de la fila i (son 0, si no apunta y 1, si apunta)
         K[i,i] = cantidad_apunta
     Kinv = invertirK(K) # Calcula inversa de la matriz K, que tiene en su diagonal la suma por filas de F 
+    # No hace falta calcular F transpuesta porque fij = 1/dij y d es la distancia de i hasta j por lo que dij=dji entonces F es una matriz simétrica y F = F_transpuesta
     C = F @ Kinv # Calcula C multiplicando Kinv y F
     return C
 
@@ -110,7 +111,7 @@ def calcula_B(C,cantidad_de_visitas):
     # C: Matirz de transiciones
     # cantidad_de_visitas: Cantidad de pasos en la red dado por los visitantes. Indicado como r en el enunciado
     # Retorna:Una matriz B que vincula la cantidad de visitas w con la cantidad de primeras visitas v
-    B = 0 * np.eye(shape[0])
+    B = np.eye(shape[0])
     M = np.eye(C.shape[0])
     for i in range(cantidad_de_visitas-1):
         # Sumamos las matrices de transición para cada cantidad de pasos
