@@ -93,8 +93,15 @@ def calcula_matriz_C_continua(D):
     D = D.copy()
     F = 1/D
     np.fill_diagonal(F,0)
-    Kinv = ... # Calcula inversa de la matriz K, que tiene en su diagonal la suma por filas de F 
-    C = ... # Calcula C multiplicando Kinv y F
+    tamaño_F = F.shape[0]
+    K = np.zeros((tamaño_F,tamaño_F))
+    for i in range (tamaño_F): #recorrre filas
+        cantidad_apunta = 0 #marcará la cantidad de museos a los que apunta el museo i
+        for j in range (tamaño_F): #recorre columnas
+            cantidad_apunta = cantidad_apunta + A[i,j] #suma todos los elementos de la fila i (son 0, si no apunta y 1, si apunta)
+        K[i,i] = cantidad_apunta
+    Kinv = invertirK(K) # Calcula inversa de la matriz K, que tiene en su diagonal la suma por filas de F 
+    C = F @ Kinv # Calcula C multiplicando Kinv y F
     return C
 
 def calcula_B(C,cantidad_de_visitas):
