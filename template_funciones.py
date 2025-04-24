@@ -53,9 +53,9 @@ def calculaInversa(A):
         #tomamos el vector correspondiente de la identidad
         b = I[:,i]
         #resolvemos el sistema Ly = bi
-        y = solve_triangular(L, b, lower = True) 
+        y = scipy.linalg.solve_triangular(L, b, lower = True) 
         #resolvemos el sistema Ux = y
-        x = solve_triangular(U, y, lower = False)
+        x = scipy.linalg.solve_triangular(U, y, lower = False)
         #este resultado es un vector, y representa la columna i en la matriz A inversa que estamos construyendo
         Ainv[:,i] = x
         #repetimos con todas las columnas
