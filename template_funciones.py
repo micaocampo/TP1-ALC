@@ -111,7 +111,7 @@ def calcula_B(C,cantidad_de_visitas):
     # C: Matirz de transiciones
     # cantidad_de_visitas: Cantidad de pasos en la red dado por los visitantes. Indicado como r en el enunciado
     # Retorna:Una matriz B que vincula la cantidad de visitas w con la cantidad de primeras visitas v
-    B = np.eye(shape[0])
+    B = np.eye(C.shape[0])
     M = np.eye(C.shape[0])
     for i in range(cantidad_de_visitas-1):
         # Sumamos las matrices de transición para cada cantidad de pasos
