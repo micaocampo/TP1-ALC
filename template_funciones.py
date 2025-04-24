@@ -96,10 +96,10 @@ def calcula_matriz_C_continua(D):
     tamaño_F = F.shape[0]
     K = np.zeros((tamaño_F,tamaño_F))
     for i in range (tamaño_F): #recorrre filas
-        cantidad_apunta = 0 #marcará la cantidad de museos a los que apunta el museo i
+        suma = 0 
         for j in range (tamaño_F): #recorre columnas
-            cantidad_apunta = cantidad_apunta + F[i,j] #suma todos los elementos de la fila i (son 0, si no apunta y 1, si apunta)
-        K[i,i] = cantidad_apunta
+            suma = suma + F[i,j] #suma todos los elementos de la fila i 
+        K[i,i] = suma
     Kinv = invertirK(K) # Calcula inversa de la matriz K, que tiene en su diagonal la suma por filas de F 
     # No hace falta calcular F transpuesta porque fij = 1/dij y d es la distancia de i hasta j por lo que dij=dji entonces F es una matriz simétrica y F = F_transpuesta
     C = F @ Kinv # Calcula C multiplicando Kinv y F
