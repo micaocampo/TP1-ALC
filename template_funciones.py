@@ -1,4 +1,14 @@
-def construye_adyacencia(D,m):
+import geopandas as gpd
+import pandas as pd
+import numpy as np
+import scipy
+
+museos = gpd.read_file('https://raw.githubusercontent.com/MuseosAbiertos/Leaflet-museums-OpenStreetMap/refs/heads/principal/data/export.geojson')
+barrios = gpd.read_file('https://cdn.buenosaires.gob.ar/datosabiertos/datasets/ministerio-de-educacion/barrios/barrios.geojson')
+
+D = museos.to_crs("EPSG:22184").geometry.apply(lambda g: museos.to_crs("EPSG:22184").distance(g)).round().to_numpy()
+
+def construye_adyacencia(D,m): 
     # Función que construye la matriz de adyacencia del grafo de museos
     # D matriz de distancias, m cantidad de links por nodo
     # Retorna la matriz de adyacencia como un numpy.
@@ -23,9 +33,35 @@ def calculaLU(matriz):
             L[i,j] = U[i,j] / U[j,j]
             U[i,:] = U[i,:] - L[i,j]*U[j,:]
     return L,U
+    
+from scipy.linalg import solve_triangular
 
-
-def calcula_matriz_C(A):
+def calculaInversa(A):
+    #sabiendo que A es inversible, hacemos
+    L, U = calculaLU(A)
+    #sabemos que A*A^-1 = I, osea LUA^-1 = I
+    #entonces para encontrar la inversa de A, buscamos plantear este sistema:
+    #Ly=bi Ux=y, donde L es triangular inferior, U superior, y b es un vector canonico (los distinguimos por la i)
+    #luego nos queda de la siguiente manera
+    tamaño_A = A.shape[0]
+    #creamos una A inversa vacía para ir guardando sus valores luego
+    Ainv = np.zeros((tamaño_A,tamaño_A))
+    #creamos la identidad para ir usando sus vectores
+    I = np.eye(tamaño_A)
+    #iteramos sobre todas las columnas:
+    for i in range(0,tamaño_A):
+        #tomamos el vector correspondiente de la identidad
+        b = I[:,i]
+        #resolvemos el sistema Ly = bi
+        y = solve_triangular(L, b, lower = True) 
+        #resolvemos el sistema Ux = y
+        x = solve_triangular(U, y, lower = False)
+        #este resultado es un vector, y representa la columna i en la matriz A inversa que estamos construyendo
+        Ainv[:,i] = x
+        #repetimos con todas las columnas
+    return Ainv
+    
+def calcula_matriz_C(A): 
     # Función para calcular la matriz de trancisiones C
     # A: Matriz de adyacencia
     # Retorna la matriz C
@@ -37,9 +73,9 @@ def calcula_matriz_C(A):
             cantidad_apunta = cantidad_apunta + A[i,j] #suma todos los elementos de la fila i (son 0, si no apunta y 1, si apunta)
         K[i,i] = cantidad_apunta
 
-    Kinv = invertirK(K) # Calcula inversa de la matriz K, que tiene en su diagonal la suma por filas de A
+    Kinv = calculaInversa(K) # Calcula inversa de la matriz K, que tiene en su diagonal la suma por filas de A
     A_traspuesta = traspuesta(A)
-    C = A_traspuesta @ Kinv # Calcula C multiplicando Kinv y A
+    C = A_traspuesta @ Kinv # Calcula C multiplicando Kinv y A 
     return C
 
 def traspuesta(A):
@@ -47,29 +83,10 @@ def traspuesta(A):
     m = A.shape[1] # numero de columnas
     AT = np.zeros((m, n)) # matriz mxn llena de ceros
     for j in range(m):
-        for i in range(n):
+        for i in range(n): 
             AT[j,i] = A[i,j]
     return AT
-
-def invertirK(K):
-    # calculamos la inversa de una matriz que tiene numeros en la diagonal y ceros en todo lo demas, ya que sabemos que K tiene este formato siempre
-    # la diagonal no puede tener ceros => todos los museos deben apuntar al menos a 1.
-    Kinv = K.copy()
-    #invierto todos los numeros de la diagonal
-    for i in range (K.shape[0]):
-        n = K[i,i]
-        Kinv[i,i] = 1/n
-    return Kinv
-
-def inversa(M):
-    # Utilizamos LU: M.x = I <=> LU.x = I siendo I la identidad y x la inversa de M.
-    L,U = calculaLU(M)
-    I = np.eye(M.shape[0])
-    # utilizamos: Ly = I, Ux = y, y encontramos x
-    y = scipy.linalg.solve_triangular(L, I, lower=True)
-    x = scipy.linalg.solve_triangular(U, y)
-    return x
-
+    
 def calcula_pagerank(A,alfa):
     # Función para calcular PageRank usando LU
     # A: Matriz de adyacencia
@@ -85,7 +102,7 @@ def calcula_pagerank(A,alfa):
     p = scipy.linalg.solve_triangular(U,Up) # Segunda inversión usando U
     return p
 
-def calcula_matriz_C_continua(D):
+def calcula_matriz_C_continua(D): 
     # Función para calcular la matriz de trancisiones C
     # A: Matriz de adyacencia
     # Retorna la matriz C en versión continua
@@ -95,11 +112,11 @@ def calcula_matriz_C_continua(D):
     tamaño_F = F.shape[0]
     K = np.zeros((tamaño_F,tamaño_F))
     for i in range (tamaño_F): #recorrre filas
-        suma = 0
+        suma = 0 
         for j in range (tamaño_F): #recorre columnas
-            suma = suma + F[i,j] #suma todos los elementos de la fila i
+            suma = suma + F[i,j] #suma todos los elementos de la fila i 
         K[i,i] = suma
-    Kinv = invertirK(K) # Calcula inversa de la matriz K, que tiene en su diagonal la suma por filas de F
+    Kinv = calculaInversa(K) # Calcula inversa de la matriz K, que tiene en su diagonal la suma por filas de F 
     # No hace falta calcular F transpuesta porque fij = 1/dij y d es la distancia de i hasta j por lo que dij=dji entonces F es una matriz simétrica y F = F_transpuesta
     C = F @ Kinv # Calcula C multiplicando Kinv y F
     return C
