@@ -33,8 +33,6 @@ def calculaLU(matriz):
             L[i,j] = U[i,j] / U[j,j]
             U[i,:] = U[i,:] - L[i,j]*U[j,:]
     return L,U
-    
-from scipy.linalg import solve_triangular
 
 def calculaInversa(A):
     #sabiendo que A es inversible, hacemos
