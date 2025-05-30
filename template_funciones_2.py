@@ -10,15 +10,37 @@
 #    [0, 0, 0, 0, 1, 1, 1, 0]
 #])
 
+import numpy as np
 
-def calcula_L(A):
-    # La función recibe la matriz de adyacencia A y calcula la matriz laplaciana
-    # Have fun!!
+def calcula_K(A):
+    tamaño_A = A.shape[0]
+    K = np.zeros((tamaño_A,tamaño_A)) # matriz llena de ceros con el mismo tamaño de A (cuadrada)
+
+    for i in range (tamaño_A): #recorrre filas
+        cantidad_apunta = 0 #marcará la cantidad de museos a los que apunta el museo i
+        for j in range (tamaño_A): #recorre columnas
+            cantidad_apunta = cantidad_apunta + A[i,j] #suma todos los elementos de la fila i (son 0, si no apunta y 1, si apunta)
+        K[i,i] = cantidad_apunta
+
+    return K
+
+def calcula_L(A): # L = K - A
+    K = calcula_K(A)
+    L = K - A
     return L
 
-def calcula_R(A):
-    # La funcion recibe la matriz de adyacencia A y calcula la matriz de modularidad
-    # Have fun!!
+def calcula_R(A): # R = A - P
+    K = calcula_K(A)
+    tamaño_A = A.shape[0]
+    P = np.zeros((tamaño_A, tamaño_A)) #matriz cuadrada llena de ceros del tamaño de A 
+    E = sum(A)/2 #suma todos los elementos de la matriz A
+
+    for i in range (tamaño_A):
+        for j in range (tamaño_A):
+            P[i,j] = (K[i,i]*K[j,j])/(2*E)
+
+    R = A - P
+    
     return R
 
 def calcula_lambda(L,v):
