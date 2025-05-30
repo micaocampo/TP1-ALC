@@ -48,8 +48,15 @@ def calcula_lambda(L,v):
     # Have fun!
     return lambdon
 
-def calcula_Q(R,v):
+def calcula_Q(R,v): # st * R * s
     # La funcion recibe R y s y retorna la modularidad (a menos de un factor 2E)
+    tamaño_v = len(v)
+    v_matriz = np.reshape(v,(tamaño_v, 1)) #crea al vector s como una matriz vertical
+    v_matriz_t = np.reshape(v, (1, tamaño_v)) # crea al vector s traspuesto como una matriz (horizontal)
+
+    Q = (v_matriz_t @ R @ v_matriz)[0][0]
+    Q = Q/2
+
     return Q
 
 def metpot1(A,tol=1e-8,maxrep=np.Inf):
