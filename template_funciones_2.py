@@ -43,9 +43,21 @@ def calcula_R(A): # R = A - P
     
     return R
 
-def calcula_lambda(L,v):
+def calcula_lambda(L,v): # 1/4 * st * L * s
     # Recibe L y v y retorna el corte asociado
-    # Have fun!
+    tamaño_s = len(v)
+    s = [1] * tamaño_s
+
+    for i in range (tamaño_s):
+        if (v[i] < 0):
+            s[i] = -1
+
+    s_matriz = np.reshape(s,(tamaño_s, 1)) #crea al vector s como una matriz vertical
+    s_matriz_t = np.reshape(s, (1, tamaño_s)) # crea al vector s traspuesto como una matriz (horizontal)
+
+    lambdon = (s_matriz_t @ L @ s_matriz)
+    lambdon = lambdon/4
+
     return lambdon
 
 def calcula_Q(R,v): # st * R * s
