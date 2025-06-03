@@ -61,14 +61,19 @@ def calcula_lambda(L,v): # 1/4 * st * L * s
     return lambdon
 
 def calcula_Q(R,v): # st * R * s
-    # DUDA: V ES AUTOVECTOR O S?
     # La funcion recibe R y s y retorna la modularidad (a menos de un factor 2E)
-    tamaño_v = len(v)
-    v_matriz = np.reshape(v,(tamaño_v, 1)) #crea al vector s como una matriz vertical
-    v_matriz_t = np.reshape(v, (1, tamaño_v)) # crea al vector s traspuesto como una matriz (horizontal)
+    tamaño_s = len(v)
+    s = [1] * tamaño_s
 
-    Q = (v_matriz_t @ R @ v_matriz)[0][0]
-    Q = Q/2
+    for i in range (tamaño_s):
+        if (v[i] < 0):
+            s[i] = -1
+
+    tamaño_s = len(v)
+    s_matriz = np.reshape(v,(tamaño_s, 1)) #crea al vector s como una matriz vertical
+    s_matriz_t = np.reshape(v, (1, tamaño_s)) # crea al vector s traspuesto como una matriz (horizontal)
+
+    Q = (s_matriz_t @ R @ s_matriz)[0][0]
 
     return Q
 
