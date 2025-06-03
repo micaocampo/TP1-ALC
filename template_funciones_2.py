@@ -9,9 +9,9 @@
 #    [0, 0, 0, 0, 1, 1, 0, 1],
 #    [0, 0, 0, 0, 1, 1, 1, 0]
 #])
-
-import numpy as np
 import random
+import scipy
+import numpy as np
 
 def calcula_K(A):
     tamaño_A = A.shape[0]
@@ -102,7 +102,6 @@ def metpot1(A,tol=1e-8,maxrep=np.Inf):
       print('MaxRep alcanzado')
    l = l1 # Calculamos el autovalor
    return v1,l,nrep<maxrep
-#%%
 
 def deflaciona(A,tol=1e-8,maxrep=np.Inf):
     # Recibe la matriz A, una tolerancia para el método de la potencia, y un número máximo de repeticiones
@@ -110,8 +109,6 @@ def deflaciona(A,tol=1e-8,maxrep=np.Inf):
     v1t = np.reshape(v1,(1,A.shape[0]))
     deflA = A - (l1*((np.outer(v1,v1t)/(v1t@v1)))) # Sugerencia, usar la funcion outer de numpy
     return deflA
-
-#%%
 
 def metpot2(A,v1,l1,tol=1e-8,maxrep=np.Inf):
    # La funcion aplica el metodo de la potencia para buscar el segundo autovalor de A, suponiendo que sus autovectores son ortogonales
@@ -174,12 +171,12 @@ def metpotI2(A,mu,tol=1e-8,maxrep=np.Inf):
    # Recibe la matriz A, y un valor mu y retorna el segundo autovalor y autovector de la matriz A, 
    # suponiendo que sus autovalores son positivos excepto por el menor que es igual a 0
    # Retorna el segundo autovector, su autovalor, y si el metodo llegó a converger.
-   X = ... # Calculamos la matriz A shifteada en mu
-   iX = ... # La invertimos
-   defliX = ... # La deflacionamos
-   v,l,_ =  ... # Buscamos su segundo autovector
+   X = A + (mu*np.eye(A.shape[0], k=0)) # Calculamos la matriz A shifteada en mu
+   iX = calculaInversa(X) # La invertimos
+   defliX = deflaciona(iX) # La deflacionamos
+   v,l,_ =  metpot1(defliX) # Buscamos su segundo autovector
    l = 1/l # Reobtenemos el autovalor correcto
-   l -= mu
+   l -= mu #se contradice con la consigna
    return v,l,_
 
 
@@ -193,19 +190,24 @@ def laplaciano_iterativo(A,niveles,nombres_s=None):
         return([nombres_s])
     else: # Sino:
         L = calcula_L(A) # Recalculamos el L
-        v,l,_ = ... # Encontramos el segundo autovector de L
+        v,l,_ = metpotI2(L,0.1) # Encontramos el segundo autovector de L
         # Recortamos A en dos partes, la que está asociada a el signo positivo de v y la que está asociada al negativo
-        Ap = ... # Asociado al signo positivo
-        Am = ... # Asociado al signo negativo
-        
+        Ap = [] # Asociado al signo positivo
+        Am = [] # Asociado al signo negativo
+        for i in range(A.shape[0]):
+            if v[i] > 0:
+                Ap = Ap + [1]
+            else:
+                Am = Am + [-1]
+        Ap = np.array(Ap)
+        Am = np.array(Am)
         return(
                 laplaciano_iterativo(Ap,niveles-1,
                                      nombres_s=[ni for ni,vi in zip(nombres_s,v) if vi>0]) +
                 laplaciano_iterativo(Am,niveles-1,
                                      nombres_s=[ni for ni,vi in zip(nombres_s,v) if vi<0])
                 )        
-
-
+    
 def modularidad_iterativo(A=None,R=None,nombres_s=None):
     # Recibe una matriz A, una matriz R de modularidad, y los nombres de los nodos
     # Retorna una lista con conjuntos de nodos representando las comunidades.
@@ -244,4 +246,3 @@ def modularidad_iterativo(A=None,R=None,nombres_s=None):
             else:
                 # Sino, repetimos para los subniveles
                 return(...)
-
