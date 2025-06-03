@@ -120,9 +120,54 @@ def metpot2(A,v1,l1,tol=1e-8,maxrep=np.Inf):
    return metpot1(deflA,tol,maxrep)
 
 
+#del template anterior
+def calculaLU(matriz):
+    # matriz es una matriz de NxN
+    # Retorna la factorización LU a través de una lista con dos matrices L y U de NxN.
+    # Completar! Have fun
+    n = matriz.shape[0] #numero de filas de la matriz (mismo que columnas)
+    L = np.eye(n, k=0) #crea matriz identidad
+    U = matriz.copy()
+    for j in range (n): #recorre las columnas
+        for i in range (j+1, n): #recorre las filas
+            L[i,j] = U[i,j] / U[j,j]
+            U[i,:] = U[i,:] - L[i,j]*U[j,:]
+    return L,U
+
+#del template anterior
+def calculaInversa(A):
+    #sabiendo que A es inversible, hacemos
+    L, U = calculaLU(A)
+    #sabemos que A*A^-1 = I, osea LUA^-1 = I
+    #entonces para encontrar la inversa de A, buscamos plantear este sistema:
+    #Ly=bi Ux=y, donde L es triangular inferior, U superior, y b es un vector canonico (los distinguimos por la i)
+    #luego nos queda de la siguiente manera
+    tamaño_A = A.shape[0]
+    #creamos una A inversa vacía para ir guardando sus valores luego
+    Ainv = np.zeros((tamaño_A,tamaño_A))
+    #creamos la identidad para ir usando sus vectores
+    I = np.eye(tamaño_A)
+    #iteramos sobre todas las columnas:
+    for i in range(0,tamaño_A):
+        #tomamos el vector correspondiente de la identidad
+        b = I[:,i]
+        #resolvemos el sistema Ly = bi
+        y = scipy.linalg.solve_triangular(L, b, lower = True) 
+        #resolvemos el sistema Ux = y
+        x = scipy.linalg.solve_triangular(U, y, lower = False)#del template anterior
+        #este resultado es un vector, y representa la columna i en la matriz A inversa que estamos construyendo
+        Ainv[:,i] = x
+        #repetimos con todas las columnas
+    return Ainv
+
 def metpotI(A,mu,tol=1e-8,maxrep=np.Inf):
     # Retorna el primer autovalor de la inversa de A + mu * I, junto a su autovector y si el método convergió.
-    return metpot1(...,tol=tol,maxrep=maxrep)
+    A_mu = A + (mu*np.eye(A.shape[0], k=0))
+    A_mu_inv = calculaInversa(A_mu)
+    
+
+    return metpot1(A_mu_inv,tol=tol,maxrep=maxrep) #preguntar
+
 
 def metpotI2(A,mu,tol=1e-8,maxrep=np.Inf):
    # Recibe la matriz A, y un valor mu y retorna el segundo autovalor y autovector de la matriz A, 
