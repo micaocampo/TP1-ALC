@@ -74,35 +74,44 @@ def calcula_Q(R,v): # st * R * s
 
 def metpot1(A,tol=1e-8,maxrep=np.Inf):
    # Recibe una matriz A y calcula su autovalor de mayor módulo, con un error relativo menor a tol y-o haciendo como mucho maxrep repeticiones
-   v = ... # Generamos un vector de partida aleatorio, entre -1 y 1
-   v = ... # Lo normalizamos
-   v1 = ... # Aplicamos la matriz una vez
-   v1 = ... # normalizamos
-   l = ... # Calculamos el autovector estimado
-   l1 = ... # Y el estimado en el siguiente paso
+   random.seed(5) #Insertar la semilla deseada
+   v = np.reshape(np.random.uniform(-1, 1, A.shape[0]),(A.shape[0],1))# Generamos un vector de partida aleatorio, entre -1 y 1
+   v = (v)/(np.linalg.norm(v)) # Lo normalizamos
+   v1 = A@v # Aplicamos la matriz una vez
+   v1 = (v1)/(np.linalg.norm(v1)) # normalizamos
+   vt = np.reshape(v,(1,A.shape[0])) # Hacemos el v traspuesto para calcular el autovalor estimado
+   v1t = np.reshape(v1,(1,A.shape[0])) # Otra vez
+   l = (vt@A@v)/(vt@v) # Calculamos el autovalor estimado
+   l1 = (v1t@A@v1)/(v1t@v1) # Y el estimado en el siguiente paso
    nrep = 0 # Contador
    while np.abs(l1-l)/np.abs(l) > tol and nrep < maxrep: # Si estamos por debajo de la tolerancia buscada 
       v = v1 # actualizamos v y repetimos
       l = l1
-      v1 = ... # Calculo nuevo v1
-      v1 = ... # Normalizo
-      l1 = ... # Calculo autovector
+      v1 = A@v # Calculo nuevo v1
+      v1 = (v1)/(np.linalg.norm(v1)) # Normalizo
+      v1t = np.reshape(v1,(1,A.shape[0])) # Hacemos el v traspuesto para calcular el autovalor estimado
+      l1 = (v1t@A@v1)/(v1t@v1) # Calculo autovalor
       nrep += 1 # Un pasito mas
    if not nrep < maxrep:
       print('MaxRep alcanzado')
-   l = ... # Calculamos el autovalor
+   l = l1 # Calculamos el autovalor
    return v1,l,nrep<maxrep
+#%%
 
 def deflaciona(A,tol=1e-8,maxrep=np.Inf):
     # Recibe la matriz A, una tolerancia para el método de la potencia, y un número máximo de repeticiones
     v1,l1,_ = metpot1(A,tol,maxrep) # Buscamos primer autovector con método de la potencia
-    deflA = ... # Sugerencia, usar la funcion outer de numpy
+    v1t = np.reshape(v1,(1,A.shape[0]))
+    deflA = A - (l1*((np.outer(v1,v1t)/(v1t@v1)))) # Sugerencia, usar la funcion outer de numpy
     return deflA
+
+#%%
 
 def metpot2(A,v1,l1,tol=1e-8,maxrep=np.Inf):
    # La funcion aplica el metodo de la potencia para buscar el segundo autovalor de A, suponiendo que sus autovectores son ortogonales
-   # v1 y l1 son los primeors autovectores y autovalores de A}
+   # v1 y l1 son los primeros autovectores y autovalores de A}
    # Have fun!
+   deflA = deflaciona(A,tol,maxrep)
    return metpot1(deflA,tol,maxrep)
 
 
