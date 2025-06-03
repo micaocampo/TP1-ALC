@@ -11,6 +11,7 @@
 #])
 
 import numpy as np
+import random
 
 def calcula_K(A):
     tamaño_A = A.shape[0]
