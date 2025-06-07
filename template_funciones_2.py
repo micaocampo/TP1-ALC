@@ -1,17 +1,18 @@
 # Matriz A de ejemplo
-#A_ejemplo = np.array([
-#    [0, 1, 1, 1, 0, 0, 0, 0],
-#    [1, 0, 1, 1, 0, 0, 0, 0],
-#    [1, 1, 0, 1, 0, 1, 0, 0],
-#    [1, 1, 1, 0, 1, 0, 0, 0],
-#    [0, 0, 0, 1, 0, 1, 1, 1],
-#    [0, 0, 1, 0, 1, 0, 1, 1],
-#    [0, 0, 0, 0, 1, 1, 0, 1],
-#    [0, 0, 0, 0, 1, 1, 1, 0]
-#])
+A_ejemplo = np.array([
+    [0, 1, 1, 1, 0, 0, 0, 0],
+    [1, 0, 1, 1, 0, 0, 0, 0],
+    [1, 1, 0, 1, 0, 1, 0, 0],
+    [1, 1, 1, 0, 1, 0, 0, 0],
+    [0, 0, 0, 1, 0, 1, 1, 1],
+    [0, 0, 1, 0, 1, 0, 1, 1],
+    [0, 0, 0, 0, 1, 1, 0, 1],
+    [0, 0, 0, 0, 1, 1, 1, 0]
+])
+
+import numpy as np
 import random
 import scipy
-import numpy as np
 
 def calcula_K(A):
     tamaño_A = A.shape[0]
@@ -24,17 +25,18 @@ def calcula_K(A):
         K[i,i] = cantidad_apunta
 
     return K
-
+    
 def calcula_L(A): # L = K - A
     K = calcula_K(A)
     L = K - A
     return L
 
+
 def calcula_R(A): # R = A - P
     K = calcula_K(A)
     tamaño_A = A.shape[0]
     P = np.zeros((tamaño_A, tamaño_A)) #matriz cuadrada llena de ceros del tamaño de A 
-    E = sum(A)/2 #suma todos los elementos de la matriz A
+    E = sum(sum(A))/2 #suma todos los elementos de la matriz A
 
     for i in range (tamaño_A):
         for j in range (tamaño_A):
@@ -43,6 +45,8 @@ def calcula_R(A): # R = A - P
     R = A - P
     
     return R
+
+
 
 def calcula_lambda(L,v): # 1/4 * st * L * s
     # Recibe L y v y retorna el corte asociado
@@ -179,35 +183,34 @@ def metpotI2(A,mu,tol=1e-8,maxrep=np.Inf):
    l -= mu #se contradice con la consigna
    return v,l,_
 
-
 def laplaciano_iterativo(A,niveles,nombres_s=None):
     # Recibe una matriz A, una cantidad de niveles sobre los que hacer cortes, y los nombres de los nodos
-    # Retorna una lista con conjuntos de nodos representando las comunidades.
-    # La función debe, recursivamente, ir realizando cortes y reduciendo en 1 el número de niveles hasta llegar a 0 y retornar.
-    if nombres_s is None: # Si no se proveyeron nombres, los asignamos poniendo del 0 al N-1
-        nombres_s = range(A.shape[0])
-    if A.shape[0] == 1 or niveles == 0: # Si llegamos al último paso, retornamos los nombres en una lista
-        return([nombres_s])
-    else: # Sino:
-        L = calcula_L(A) # Recalculamos el L
-        v,l,_ = metpotI2(L,0.1) # Encontramos el segundo autovector de L
-        # Recortamos A en dos partes, la que está asociada a el signo positivo de v y la que está asociada al negativo
-        Ap = [] # Asociado al signo positivo
-        Am = [] # Asociado al signo negativo
-        for i in range(A.shape[0]):
-            if v[i] > 0:
-                Ap = Ap + [1]
-            else:
-                Am = Am + [-1]
-        Ap = np.array(Ap)
-        Am = np.array(Am)
-        return(
-                laplaciano_iterativo(Ap,niveles-1,
-                                     nombres_s=[ni for ni,vi in zip(nombres_s,v) if vi>0]) +
-                laplaciano_iterativo(Am,niveles-1,
-                                     nombres_s=[ni for ni,vi in zip(nombres_s,v) if vi<0])
-                )        
-    
+   # Retorna una lista con conjuntos de nodos representando las comunidades.
+   # La función debe, recursivamente, ir realizando cortes y reduciendo en 1 el número de niveles hasta llegar a 0 y retornar.
+   if nombres_s is None: # Si no se proveyeron nombres, los asignamos poniendo del 0 al N-1
+       nombres_s = range(A.shape[0])
+   if A.shape[0] == 1 or niveles == 0: # Si llegamos al último paso, retornamos los nombres en una lista
+       return([nombres_s])
+   else: # Sino:
+       L = calcula_L(A) # Recalculamos el L
+       v,l,_ = metpotI2(L,0.1) # Encontramos el segundo autovector de L
+       # Recortamos A en dos partes, la que está asociada a el signo positivo de v y la que está asociada al negativo
+       Ap = [] # Asociado al signo positivo
+       Am = [] # Asociado al signo negativo
+       for i in range(A.shape[0]):
+           if v[i] > 0:
+               Ap = Ap + [1]
+           else:
+               Am = Am + [-1]
+       Ap = np.array(Ap)
+       Am = np.array(Am)
+       return(
+               laplaciano_iterativo(Ap,niveles-1,
+                                    nombres_s=[ni for ni,vi in zip(nombres_s,v) if vi>0]) +
+               laplaciano_iterativo(Am,niveles-1,
+                                    nombres_s=[ni for ni,vi in zip(nombres_s,v) if vi<0])
+               )        
+
 def modularidad_iterativo(A=None,R=None,nombres_s=None):
     # Recibe una matriz A, una matriz R de modularidad, y los nombres de los nodos
     # Retorna una lista con conjuntos de nodos representando las comunidades.
@@ -223,17 +226,18 @@ def modularidad_iterativo(A=None,R=None,nombres_s=None):
     if R.shape[0] == 1: # Si llegamos al último nivel
         return(...)
     else:
-        v,l,_ = ... # Primer autovector y autovalor de R
+        v,l,_ = metpot1(R) # Primer autovector y autovalor de R
+        # Arreglar el v (?)
         # Modularidad Actual:
         Q0 = np.sum(R[v>0,:][:,v>0]) + np.sum(R[v<0,:][:,v<0])
         if Q0<=0 or all(v>0) or all(v<0): # Si la modularidad actual es menor a cero, o no se propone una partición, terminamos
             return(...)
         else:
             ## Hacemos como con L, pero usando directamente R para poder mantener siempre la misma matriz de modularidad
-            Rp = ... # Parte de R asociada a los valores positivos de v
-            Rm = ... # Parte asociada a los valores negativos de v
-            vp,lp,_ = ...  # autovector principal de Rp
-            vm,lm,_ = ... # autovector principal de Rm
+            Rp = R[v>0,:][:,v>0] # Parte de R asociada a los valores positivos de v
+            Rm = R[v<0,:][:,v<0] # Parte asociada a los valores negativos de v
+            vp,lp,_ = metpot1(Rp)  # autovector principal de Rp
+            vm,lm,_ = metpot1(Rm) # autovector principal de Rm
         
             # Calculamos el cambio en Q que se produciría al hacer esta partición
             Q1 = 0
@@ -245,4 +249,28 @@ def modularidad_iterativo(A=None,R=None,nombres_s=None):
                 return([[ni for ni,vi in zip(nombres_s,v) if vi>0],[ni for ni,vi in zip(nombres_s,v) if vi<0]])
             else:
                 # Sino, repetimos para los subniveles
-                return(...)
+                Ap = A[v>0,:][:,v>0]
+                Am = A[v<0,:][:,v<0]
+                res = modularidad_iterativo(Ap,Rp,nombres_s) + modularidad_iterativo(Am,Rm,nombres_s)
+                return(res)
+                
+# autovector asociado al segundo autovalor más chico de la matriz L
+L = calcula_L(A_ejemplo)
+def calcula_s(v):
+    tamaño_s = len(v)
+    s = [1] * tamaño_s
+
+    for i in range (tamaño_s):
+        if (v[i] < 0):
+            s[i] = -1
+    return s
+segundo_v, segundo_l, _ = metpotI2(L,0.1)
+s_l = calcula_s(segundo_v)
+print(s_l)
+print(segundo_v)
+# autovector asociado al autovalor más grande de R
+R = calcula_R(A_ejemplo)
+primer_v, primer_l, _ = metpot1(R)
+s_r = calcula_s(primer_v)
+print(s_r)
+print(primer_v)
