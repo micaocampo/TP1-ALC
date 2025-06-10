@@ -1,3 +1,7 @@
+import numpy as np
+import random
+import scipy
+
 # Matriz A de ejemplo
 A_ejemplo = np.array([
     [0, 1, 1, 1, 0, 0, 0, 0],
@@ -9,10 +13,6 @@ A_ejemplo = np.array([
     [0, 0, 0, 0, 1, 1, 0, 1],
     [0, 0, 0, 0, 1, 1, 1, 0]
 ])
-
-import numpy as np
-import random
-import scipy
 
 def calcula_K(A):
     tamaño_A = A.shape[0]
@@ -47,7 +47,6 @@ def calcula_R(A): # R = A - P
     return R
 
 
-
 def calcula_lambda(L,v): # 1/4 * st * L * s
     # Recibe L y v y retorna el corte asociado
     tamaño_s = len(v)
@@ -56,11 +55,11 @@ def calcula_lambda(L,v): # 1/4 * st * L * s
     for i in range (tamaño_s):
         if (v[i] < 0):
             s[i] = -1
-
+    print(s)
     s_matriz = np.reshape(s,(tamaño_s, 1)) #crea al vector s como una matriz vertical
     s_matriz_t = np.reshape(s, (1, tamaño_s)) # crea al vector s traspuesto como una matriz (horizontal)
 
-    lambdon = (s_matriz_t @ L @ s_matriz)
+    lambdon = (s_matriz_t @ L @ s_matriz)[0][0]
     lambdon = lambdon/4
 
     return lambdon
@@ -104,7 +103,8 @@ def metpot1(A,tol=1e-8,maxrep=np.Inf):
       nrep += 1 # Un pasito mas
    if not nrep < maxrep:
       print('MaxRep alcanzado')
-   l = l1 # Calculamos el autovalor
+   l = l1[0][0] # Calculamos el autovalor
+   v1 = np.array([elemento for sublista in v1 for elemento in sublista]) #dejamos el vector como array y no como matriz
    return v1,l,nrep<maxrep
 
 def deflaciona(A,tol=1e-8,maxrep=np.Inf):
@@ -120,7 +120,6 @@ def metpot2(A,v1,l1,tol=1e-8,maxrep=np.Inf):
    # Have fun!
    deflA = deflaciona(A,tol,maxrep)
    return metpot1(deflA,tol,maxrep)
-
 
 #del template anterior
 def calculaLU(matriz):
@@ -224,14 +223,14 @@ def modularidad_iterativo(A=None,R=None,nombres_s=None):
         nombres_s = range(R.shape[0])
     # Acá empieza lo bueno
     if R.shape[0] == 1: # Si llegamos al último nivel
-        return(...)
+        return(nombres_s)
     else:
         v,l,_ = metpot1(R) # Primer autovector y autovalor de R
         # Arreglar el v (?)
         # Modularidad Actual:
         Q0 = np.sum(R[v>0,:][:,v>0]) + np.sum(R[v<0,:][:,v<0])
         if Q0<=0 or all(v>0) or all(v<0): # Si la modularidad actual es menor a cero, o no se propone una partición, terminamos
-            return(...)
+            return([[ni for ni,vi in zip(nombres_s,v) if vi>0],[ni for ni,vi in zip(nombres_s,v) if vi<0]])
         else:
             ## Hacemos como con L, pero usando directamente R para poder mantener siempre la misma matriz de modularidad
             Rp = R[v>0,:][:,v>0] # Parte de R asociada a los valores positivos de v
@@ -251,26 +250,9 @@ def modularidad_iterativo(A=None,R=None,nombres_s=None):
                 # Sino, repetimos para los subniveles
                 Ap = A[v>0,:][:,v>0]
                 Am = A[v<0,:][:,v<0]
-                res = modularidad_iterativo(Ap,Rp,nombres_s) + modularidad_iterativo(Am,Rm,nombres_s)
+                nombres_separados = [[ni for ni,vi in zip(nombres_s,v) if vi>0],[ni for ni,vi in zip(nombres_s,v) if vi<0]]
+                res = modularidad_iterativo(Ap,Rp,nombres_separados[0]) + modularidad_iterativo(Am,Rm,nombres_separados[1])
                 return(res)
-                
-# autovector asociado al segundo autovalor más chico de la matriz L
-L = calcula_L(A_ejemplo)
-def calcula_s(v):
-    tamaño_s = len(v)
-    s = [1] * tamaño_s
+            
 
-    for i in range (tamaño_s):
-        if (v[i] < 0):
-            s[i] = -1
-    return s
-segundo_v, segundo_l, _ = metpotI2(L,0.1)
-s_l = calcula_s(segundo_v)
-print(s_l)
-print(segundo_v)
-# autovector asociado al autovalor más grande de R
-R = calcula_R(A_ejemplo)
-primer_v, primer_l, _ = metpot1(R)
-s_r = calcula_s(primer_v)
-print(s_r)
-print(primer_v)
+
