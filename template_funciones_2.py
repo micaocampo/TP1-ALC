@@ -1,5 +1,4 @@
 import numpy as np
-import random
 import scipy
 
 # Matriz A de ejemplo
@@ -18,7 +17,7 @@ def calcula_K(A):
     tamaño_A = A.shape[0]
     K = np.zeros((tamaño_A,tamaño_A)) # matriz llena de ceros con el mismo tamaño de A (cuadrada)
 
-    for i in range (tamaño_A): #recorrre filas
+    for i in range (tamaño_A): #recorre filas
         cantidad_apunta = 0 #marcará la cantidad de museos a los que apunta el museo i
         for j in range (tamaño_A): #recorre columnas
             cantidad_apunta = cantidad_apunta + A[i,j] #suma todos los elementos de la fila i (son 0, si no apunta y 1, si apunta)
@@ -55,7 +54,6 @@ def calcula_lambda(L,v): # 1/4 * st * L * s
     for i in range (tamaño_s):
         if (v[i] < 0):
             s[i] = -1
-    print(s)
     s_matriz = np.reshape(s,(tamaño_s, 1)) #crea al vector s como una matriz vertical
     s_matriz_t = np.reshape(s, (1, tamaño_s)) # crea al vector s traspuesto como una matriz (horizontal)
 
@@ -81,9 +79,8 @@ def calcula_Q(R,v): # st * R * s
 
     return Q
 
-def metpot1(A,tol=1e-8,maxrep=np.Inf):
+def metpot1(A,tol=1e-8,maxrep=np.inf):
    # Recibe una matriz A y calcula su autovalor de mayor módulo, con un error relativo menor a tol y-o haciendo como mucho maxrep repeticiones
-   random.seed(5) #Insertar la semilla deseada
    v = np.reshape(np.random.uniform(-1, 1, A.shape[0]),(A.shape[0],1))# Generamos un vector de partida aleatorio, entre -1 y 1
    v = (v)/(np.linalg.norm(v)) # Lo normalizamos
    v1 = A@v # Aplicamos la matriz una vez
@@ -107,14 +104,14 @@ def metpot1(A,tol=1e-8,maxrep=np.Inf):
    v1 = np.array([elemento for sublista in v1 for elemento in sublista]) #dejamos el vector como array y no como matriz
    return v1,l,nrep<maxrep
 
-def deflaciona(A,tol=1e-8,maxrep=np.Inf):
+def deflaciona(A,tol=1e-8,maxrep=np.inf):
     # Recibe la matriz A, una tolerancia para el método de la potencia, y un número máximo de repeticiones
     v1,l1,_ = metpot1(A,tol,maxrep) # Buscamos primer autovector con método de la potencia
     v1t = np.reshape(v1,(1,A.shape[0]))
     deflA = A - (l1*((np.outer(v1,v1t)/(v1t@v1)))) # Sugerencia, usar la funcion outer de numpy
     return deflA
 
-def metpot2(A,v1,l1,tol=1e-8,maxrep=np.Inf):
+def metpot2(A,v1,l1,tol=1e-8,maxrep=np.inf):
    # La funcion aplica el metodo de la potencia para buscar el segundo autovalor de A, suponiendo que sus autovectores son ortogonales
    # v1 y l1 son los primeros autovectores y autovalores de A}
    # Have fun!
@@ -161,7 +158,7 @@ def calculaInversa(A):
         #repetimos con todas las columnas
     return Ainv
 
-def metpotI(A,mu,tol=1e-8,maxrep=np.Inf):
+def metpotI(A,mu,tol=1e-8,maxrep=np.inf):
     # Retorna el primer autovalor de la inversa de A + mu * I, junto a su autovector y si el método convergió.
     A_mu = A + (mu*np.eye(A.shape[0], k=0))
     A_mu_inv = calculaInversa(A_mu)
@@ -170,7 +167,7 @@ def metpotI(A,mu,tol=1e-8,maxrep=np.Inf):
     return metpot1(A_mu_inv,tol=tol,maxrep=maxrep) #preguntar
 
 
-def metpotI2(A,mu,tol=1e-8,maxrep=np.Inf):
+def metpotI2(A,mu,tol=1e-8,maxrep=np.inf):
    # Recibe la matriz A, y un valor mu y retorna el segundo autovalor y autovector de la matriz A, 
    # suponiendo que sus autovalores son positivos excepto por el menor que es igual a 0
    # Retorna el segundo autovector, su autovalor, y si el metodo llegó a converger.
@@ -192,17 +189,10 @@ def laplaciano_iterativo(A,niveles,nombres_s=None):
        return([nombres_s])
    else: # Sino:
        L = calcula_L(A) # Recalculamos el L
-       v,l,_ = metpotI2(L,0.1) # Encontramos el segundo autovector de L
+       v,l,_ = metpotI2(L,0.1) # Encontramos el segundo autovector más chico de L
        # Recortamos A en dos partes, la que está asociada a el signo positivo de v y la que está asociada al negativo
-       Ap = [] # Asociado al signo positivo
-       Am = [] # Asociado al signo negativo
-       for i in range(A.shape[0]):
-           if v[i] > 0:
-               Ap = Ap + [1]
-           else:
-               Am = Am + [-1]
-       Ap = np.array(Ap)
-       Am = np.array(Am)
+       Ap = A[v>0,:][:,v>0]
+       Am = A[v<0,:][:,v<0]
        return(
                laplaciano_iterativo(Ap,niveles-1,
                                     nombres_s=[ni for ni,vi in zip(nombres_s,v) if vi>0]) +
@@ -223,7 +213,7 @@ def modularidad_iterativo(A=None,R=None,nombres_s=None):
         nombres_s = range(R.shape[0])
     # Acá empieza lo bueno
     if R.shape[0] == 1: # Si llegamos al último nivel
-        return(nombres_s)
+        return(list(nombres_s))
     else:
         v,l,_ = metpot1(R) # Primer autovector y autovalor de R
         # Arreglar el v (?)
@@ -254,5 +244,3 @@ def modularidad_iterativo(A=None,R=None,nombres_s=None):
                 res = modularidad_iterativo(Ap,Rp,nombres_separados[0]) + modularidad_iterativo(Am,Rm,nombres_separados[1])
                 return(res)
             
-
-
