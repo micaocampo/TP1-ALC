@@ -220,7 +220,10 @@ def modularidad_iterativo(A=None,R=None,nombres_s=None):
         # Modularidad Actual:
         Q0 = np.sum(R[v>0,:][:,v>0]) + np.sum(R[v<0,:][:,v<0])
         if Q0<=0 or all(v>0) or all(v<0): # Si la modularidad actual es menor a cero, o no se propone una partición, terminamos
-            return([[ni for ni,vi in zip(nombres_s,v) if vi>0],[ni for ni,vi in zip(nombres_s,v) if vi<0]])
+            part1 = [ni for ni, vi in zip(nombres_s, v) if vi > 0]
+            part2 = [ni for ni, vi in zip(nombres_s, v) if vi < 0]
+            particiones = [part for part in [part1, part2] if len(part) > 0]
+            return particiones
         else:
             ## Hacemos como con L, pero usando directamente R para poder mantener siempre la misma matriz de modularidad
             Rp = R[v>0,:][:,v>0] # Parte de R asociada a los valores positivos de v
